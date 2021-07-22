@@ -277,7 +277,7 @@ export const Header = () => {
                     <hr />
                     <li>
                       <Button onClick={() => handleRoute('/about')}>
-                        <Primary>about hic et nunc</Primary>
+                        <Primary>about</Primary>
                       </Button>
                     </li>
                     <li>

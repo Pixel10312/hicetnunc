@@ -18,11 +18,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-left: -26px;
   width: 88px;
   height: 20px;
 
   @include respond-to('desktop') {
-    width: 71px;
+    width: 74px;
   }
 }
 
@@ -30,10 +31,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-left: -22px;
   width: 72px;
   height: 20px;
 
   @include respond-to('desktop') {
-    width: 60px;
+    width: 62px;
   }
 }

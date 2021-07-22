@@ -118,6 +118,7 @@
       li {
         font-size: 20px;
         margin: 14px 20px;
+        margin-left: 35px;
         text-align: left;
 
         &:first-child {
@@ -135,6 +136,7 @@
         @include respond-to('desktop') {
           font-size: 16px;
           margin: 6px 10px;
+          margin-left: 35px;
         }
 
         & > * {
@@ -159,6 +161,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-left: -25px;
 
   stroke: var(--text-color);
 }
