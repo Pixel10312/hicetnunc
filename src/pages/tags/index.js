@@ -12,6 +12,7 @@ import { PATH } from '../../constants'
 import styles from './styles.module.scss'
 
 const axios = require('axios')
+const _ = require('lodash')
 
 async function fetchGraphQL(operationsDoc, operationName, variables) {
   const result = await fetch(
@@ -28,12 +29,13 @@ async function fetchGraphQL(operationsDoc, operationName, variables) {
   return await result.json();
 }
 
-async function fetchTag(tag) {
+async function fetchTag(tag, offset) {
   const { errors, data } = await fetchGraphQL(`query ObjktsByTag($tag: String = "3d", $lastId: bigint = 99999999) {
-    hic_et_nunc_token(where: {token_tags: {tag: {tag: {_eq: $tag}}}, id: {_lt: $lastId}, supply: {_gt: "0"}}, order_by: {id: desc}) {
+    hic_et_nunc_token(where: {token_tags: {tag: {tag: {_eq: ${tag}}}}, id: {_lt: $lastId}, supply: {_gt: "0"}}, order_by: {id: desc}, limit : 35, offset : ${offset}) {
       id
       artifact_uri
       display_uri
+      creator_id
       mime
       creator {
         address
@@ -42,7 +44,7 @@ async function fetchTag(tag) {
     }
   }`,
     'ObjktsByTag',
-    { tag: tag }
+    {}
   )
 
   try {
@@ -51,6 +53,14 @@ async function fetchTag(tag) {
     return undefined
   }
 }
+
+const getRestrictedAddresses = async () =>
+  await axios
+    .get(
+      'https://raw.githubusercontent.com/hicetnunc2000/hicetnunc-reports/main/filters/w.json'
+    )
+    .then((res) => res.data)
+
 export const Tags = () => {
   const { id } = useParams()
   const [error, setError] = useState(false)
@@ -58,17 +68,22 @@ export const Tags = () => {
   const [feed, setFeed] = useState([])
   const [count, setCount] = useState(0)
   const [hasMore, setHasMore] = useState(true)
+  const [restricted, setRestricted] = useState([])
+  const [offset, setOffset] = useState(0)
 
-  const loadMore = () => {
-    console.log(items.slice(count + 25, count + 50))
-    setFeed([...feed, ...items.slice(count + 25, count + 50)])
-    setCount(count + 25)
+  const loadMore = async () => {
+    setOffset(offset + 35)
+    let arr = await fetchTag(id, offset + 35)
+    setFeed(_.uniqBy([...feed, ...arr].filter(e => !restricted.includes(e.creator_id)), 'creator_id'))
+    setCount(count + 15)
   }
 
   useEffect(async () => {
-    let arr = await fetchTag(id)
-    setItems(arr)
-    setFeed(arr.slice(0, 25))
+    let arr = await fetchTag(id, offset)
+    let res = await getRestrictedAddresses()
+    setRestricted(res)
+    console.log(arr)
+    setFeed(_.uniqBy(arr.filter(e => !res.includes(e.creator_id)), 'creator_id'))
   }, [])
 
   return (
@@ -83,7 +98,7 @@ export const Tags = () => {
           <div className={styles.container}>
             <Container xlarge>
               <ResponsiveMasonry>
-                {items.map((nft, index) => {
+                {feed.map((nft, index) => {
                   return (
                     <Button
                       key={`${nft.id}-${index}`}
